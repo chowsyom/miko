@@ -18,14 +18,14 @@ void MessengerClass::begin(void)
 		Wire.begin();
 		//wdt_enable(WDT_TIMEOUT);
 	#endif
-	CLIENT_ID = EEPROM.read(0);//æ”¾åœ¨ZWifi.begin();ä¹‹åï¼Œè¦åˆå§‹åŒ–EEPROM.begin(100);
+	CLIENT_ID = EEPROM.read(0);//·ÅÔÚZWifi.begin();Ö®ºó£¬Òª³õÊ¼»¯EEPROM.begin(100);
 	//CMD[3] = CLIENT_ID;
 	this->sayHi();
 	
 	#ifdef VirtualWire_h
 		vw_set_ptt_inverted(true); // Required for DR3100
 		vw_setup(2000);  // Bits per sec
-		vw_rx_start();       // Start the receiver PLL running 
+		vw_rx_start();       // Start the receiver PLL running
 	#endif
 }
 void MessengerClass::sayHi()
@@ -57,7 +57,7 @@ void MessengerClass::loop(void)//(bool* hasOtherMsg, uint8_t* msg, uint8_t* msgS
 	#endif
 	uint8_t len = VW_MAX_MESSAGE_LEN;
 	uint8_t receiveBuf[len];
-	//å¦‚æœæ”¶åˆ°è¿œç¨‹æŒ‡ä»¤ï¼Œå¤„ç†æŒ‡ä»¤
+	//Èç¹ûÊÕµ½Ô¶³ÌÖ¸Áî£¬´¦ÀíÖ¸Áî
 	if(this->receiveMsg(receiveBuf, &len))
 	{
 		this->handleMessage(receiveBuf, len);
@@ -73,7 +73,7 @@ void MessengerClass::setIdle(bool idle)
 {
   //isIdle = !isWorking && idle;
 }
-//å‘é€æ¶ˆæ¯
+//·¢ËÍÏûÏ¢
 // void MessengerClass::sendMsg(void)
 // {
 //   this->sendMsg(msg_cache, sendedSize);
@@ -127,7 +127,7 @@ void MessengerClass::sendMsg(uint8_t* msg, uint8_t len)
   //isWorking = false;
 }
 
-//æ¥æ”¶ä¿¡æ¯
+//½ÓÊÕĞÅÏ¢
 uint8_t MessengerClass::receiveMsg(uint8_t* buf, uint8_t* buflen)
 {
 	//#ifdef VirtualWire_h
@@ -137,7 +137,7 @@ uint8_t MessengerClass::receiveMsg(uint8_t* buf, uint8_t* buflen)
 	#else
 		if (Serial.available())
 		{
-			delay(100);//é˜²æ­¢ä¿¡æ¯è¢«åˆ†æ®µè¯»å–
+			delay(100);//·ÀÖ¹ĞÅÏ¢±»·Ö¶Î¶ÁÈ¡
 			size_t len = Serial.available();
 			len = len>*buflen?*buflen:len;
 			byte sbuf[len];
@@ -192,7 +192,7 @@ void MessengerClass::printString(uint8_t* msg, uint8_t len)
 void MessengerClass::printString(uint8_t* msg, uint8_t len){}
 #endif
 
-//è¶…æ—¶é‡å‘
+//³¬Ê±ÖØ·¢
 // void MessengerClass::checkMsgTimeout(void)
 // {
 //   if (replyRetryTimes < 3)
@@ -219,34 +219,34 @@ inline void itoBin(uint8_t num, char* buf)
 	for(uint8_t i=8;i>0;i--)
 	{
 		uint8_t k = 1 << (i-1);
-		if(k & num) flag = true;//ä»é«˜ä½åˆ°ä½ä½ï¼Œç¬¬ä¸€ä¸ª1å¼€å§‹è®°å½•
+		if(k & num) flag = true;//´Ó¸ßÎ»µ½µÍÎ»£¬µÚÒ»¸ö1¿ªÊ¼¼ÇÂ¼
 		if(flag) buf[j++] = (k & num) ? '1':'0';
 	}
 	if(!flag) buf[j++] = '0'; 
 	buf[j] = 0;
 }
-//å¤„ç†æ¥æ”¶åˆ°çš„æŒ‡ä»¤
+//´¦Àí½ÓÊÕµ½µÄÖ¸Áî
 void MessengerClass::handleMessage(uint8_t* receiveBuf, uint8_t buflen)
 {
-  //è§£ææŒ‡ä»¤
-  //0xFE|0x7C|æ¥æ”¶ç«¯è®¾å¤‡å·(0xFFå…¨éƒ¨)|å‘é€ç«¯è®¾å¤‡å·|æŒ‡ä»¤ID|æŒ‡ä»¤/çŠ¶æ€ç¼–å·(0xFD)|æŒ‡ä»¤å€¼(0xFF=0)
-  //æŒ‡ä»¤/çŠ¶æ€ç¼–å· : 0x01=è®¾ç½®ç»§ç”µå™¨çŠ¶æ€,0x02=,0x03=è®¾ç½®ç³»ç»Ÿæ—¶é—´,0x04=è®¾ç½®å®šæ—¶åˆ—è¡¨,0x05=çº¢å¤–é‡Šçƒ­ä¼ æ„Ÿå™¨,0x06=æ¸©æ¹¿åº¦,0x07=PM2.5,0x08=CO2,0xFD=å›å¤æ”¶åˆ°æŒ‡ä»¤é•¿åº¦
+  //½âÎöÖ¸Áî
+  //0xFE|0x7C|½ÓÊÕ¶ËÉè±¸ºÅ(0xFFÈ«²¿)|·¢ËÍ¶ËÉè±¸ºÅ|Ö¸ÁîID|Ö¸Áî/×´Ì¬±àºÅ(0xFD)|Ö¸ÁîÖµ(0xFF=0)
+  //Ö¸Áî/×´Ì¬±àºÅ : 0x01=ÉèÖÃ¼ÌµçÆ÷×´Ì¬,0x02=,0x03=ÉèÖÃÏµÍ³Ê±¼ä,0x04=ÉèÖÃ¶¨Ê±ÁĞ±í,0x05=ºìÍâÊÍÈÈ´«¸ĞÆ÷,0x06=ÎÂÊª¶È,0x07=PM2.5,0x08=CO2,0xFD=»Ø¸´ÊÕµ½Ö¸Áî³¤¶È
   //0xFE|0x7C|0x01|0xFF|0x01|0x01|0x01~0xFE
   //0xFE|0x7C|0x01|0xFF|0x02|0x02|0x01~0xFE
-  //0xFE|0x7C|0x01|0xFF|0x03|0x03|0xFF 0x2F 0x0E 0x04 0x16 0x09 0x10 //ç§’,åˆ†,æ—¶,å‘¨,æ—¥,æœˆ,å¹´ 2016-09-22 w4 14:47:00
-  //0xFE|0x7C|0x01|0xFF|0x04|0x04|0x01,0x0F,0x1F,0x0F,0x2F,...    //0x04è®¾ç½®å®šæ—¶ week1(1111111),hour11,minute11,hour12,minute12,week2(1111111),hour21,minute21,hour22,minute22,...,
+  //0xFE|0x7C|0x01|0xFF|0x03|0x03|0xFF 0x2F 0x0E 0x04 0x16 0x09 0x10 //Ãë,·Ö,Ê±,ÖÜ,ÈÕ,ÔÂ,Äê 2016-09-22 w4 14:47:00
+  //0xFE|0x7C|0x01|0xFF|0x04|0x04|0x01,0x0F,0x1F,0x0F,0x2F,...    //0x04ÉèÖÃ¶¨Ê± week1(1111111),hour11,minute11,hour12,minute12,week2(1111111),hour21,minute21,hour22,minute22,...,
 
   //FE 7C 01 01 01 02 0F
   //FE 7C 01 01 02 03 FF 2F 0E 08 16 09 10
   //FE 7C 01 01 03 04 08:00-10:00,01;00:00-00:00,02;00:00-00:00,03;00:00-00:00,04;08:00-09:00,05;17:00-18:00,06;21:00-22:00,07;22:00-19:30,08
   //FE 7C 01 01 04 FC 01 05 
-  if (buflen > 6 && receiveBuf[0] == 0xFE && (receiveBuf[1] == 0x7C || receiveBuf[1] == 0x7F)) //ä»¥0xFE, 0x7C|0x7Få¼€å¤´
+  if (buflen > 6 && receiveBuf[0] == 0xFE && (receiveBuf[1] == 0x7C || receiveBuf[1] == 0x7F)) //ÒÔ0xFE, 0x7C|0x7F¿ªÍ·
   {
 	//*gotMsg = true;
 	//*receiverId = receiveBuf[2];
-	//åŒ¹é…è®¾å¤‡å·å’ŒæŒ‡ä»¤id
-	//åŒä¸€ä¸ªè®¾å¤‡å‘é€äº†ç›¸åŒçš„æŒ‡ä»¤åˆ™å¿½ç•¥
-	//0xDBä¸ºDebugæ¨¡å¼ä¸å—é™åˆ¶
+	//Æ¥ÅäÉè±¸ºÅºÍÖ¸Áîid
+	//Í¬Ò»¸öÉè±¸·¢ËÍÁËÏàÍ¬µÄÖ¸ÁîÔòºöÂÔ
+	//0xDBÎªDebugÄ£Ê½²»ÊÜÏŞÖÆ
 	if (receiveBuf[2] == CLIENT_ID || receiveBuf[2] == 0xFF)
 	{
 		unsigned int ticket;
@@ -274,7 +274,7 @@ void MessengerClass::handleMessage(uint8_t* receiveBuf, uint8_t buflen)
 			uint8_t date[7];
 			uint8_t* addr;
 			addr = receiveBuf + 6;
-			//è®¾ç½®åº”ç­”
+			//ÉèÖÃÓ¦´ğ
 			if(receiveBuf[5] != 0xFB && receiveBuf[5] != 0xFC && receiveBuf[5] != 0xFD && receiveBuf[3] != 0xDB)
 			{
 				for(uint8_t i=0;i<RESPONSE_NUMBER;i++)
@@ -287,7 +287,7 @@ void MessengerClass::handleMessage(uint8_t* receiveBuf, uint8_t buflen)
 						break;
 					}
 				}
-				//é€šç”¨å›å¤
+				//Í¨ÓÃ»Ø¸´
 				if(receiveBuf[1] != 0x7F)
 				{
 					uint8_t sbuf[2];
@@ -327,9 +327,9 @@ void MessengerClass::handleMessage(uint8_t* receiveBuf, uint8_t buflen)
 					delay(100);
 					}
 					else*/
-					//if(*addr == 0xFF)//&&receiveBuf[3]==msg_cache[2])//ç¡®è®¤æ¥æ”¶è€…æ˜¯å¦åŒ¹é…
+					//if(*addr == 0xFF)//&&receiveBuf[3]==msg_cache[2])//È·ÈÏ½ÓÊÕÕßÊÇ·ñÆ¥Åä
 					//{
-					  	//åˆ¤æ–­å›å¤æ”¶åˆ°æŒ‡ä»¤é•¿åº¦æ˜¯å¦æ­£ç¡® FE 7C 34 33 1E FD FF 8 0
+					  	//ÅĞ¶Ï»Ø¸´ÊÕµ½Ö¸Áî³¤¶ÈÊÇ·ñÕıÈ· FE 7C 34 33 1E FD FF 8 0
 						// if (*(addr + 1) != sendedSize) {
 					 //  		#ifdef _ZESP8266_H_
 					 //  			char info[50];
@@ -354,7 +354,7 @@ void MessengerClass::handleMessage(uint8_t* receiveBuf, uint8_t buflen)
 					//}
 				//break;
 				case 0x01:
-				  //è®¾ç½®è®¾å¤‡ç¼–å·
+				  //ÉèÖÃÉè±¸±àºÅ
 				  
 				  if(receiveBuf[3] == 0xDB)
 				  {
@@ -380,7 +380,7 @@ void MessengerClass::handleMessage(uint8_t* receiveBuf, uint8_t buflen)
 				  }
 				  break;
 				case 0x02:
-				  //è®¾ç½®ç»§ç”µå™¨çŠ¶æ€
+				  //ÉèÖÃ¼ÌµçÆ÷×´Ì¬
 				  if(*addr != 0xFC) 
 				  {
 					  ZClock.updateDateTime(date);
@@ -432,7 +432,7 @@ void MessengerClass::handleMessage(uint8_t* receiveBuf, uint8_t buflen)
 				  }
 				  break;
 				case 0x03:
-				  //æ›´æ–°ç³»ç»Ÿæ—¶é—´
+				  //¸üĞÂÏµÍ³Ê±¼ä
 				  if(*addr != 0xFC) 
 				  {
 					  uint8_t i=0;
@@ -457,11 +457,11 @@ void MessengerClass::handleMessage(uint8_t* receiveBuf, uint8_t buflen)
 				  }
 				  break;
 				//case 0x04:
-				  //æ›´æ–°å®šæ—¶æ—¶é—´åˆ—è¡¨
+				  //¸üĞÂ¶¨Ê±Ê±¼äÁĞ±í
 				  //this->updateTimingList(addr);
 				  //break;
 				default:
-					//å¤–éƒ¨å¤„ç†otherMsgs[MESSAGE_CACHE_NUMBER];
+					//Íâ²¿´¦ÀíotherMsgs[MESSAGE_CACHE_NUMBER];
 					for(uint8_t i=0;i<MESSAGE_CACHE_NUMBER;i++)
 					{
 						if(otherMsgs[i].id == receiveBuf[5])
@@ -493,7 +493,7 @@ bool MessengerClass::listen(uint8_t* prMsg)
 		if(otherMsgs[i].id == 0 && j==0xFF) j = i;
 		if(otherMsgs[i].id == *prMsg) 
 		{
-			//å¦‚æœæ˜¯FDï¼Œè¿˜éœ€åˆ¤æ–­åé¢ä¸€ä½
+			//Èç¹ûÊÇFD£¬»¹ĞèÅĞ¶ÏºóÃæÒ»Î»
 			if(*prMsg == 0xFD && otherMsgs[i].sub_id != *(prMsg+1))
 			{
 				continue;
@@ -529,7 +529,7 @@ OptByCmd* MessengerClass::getOptByCmdFlag(uint8_t id)
 }
 void MessengerClass::response(uint8_t* buf, uint8_t len)
 {
-	//åŒ¹é…æŒ‡ä»¤{0xFE, 0x7C, 0, 0, 1,0xFD, 0, 0, 0, 0};
+	//Æ¥ÅäÖ¸Áî{0xFE, 0x7C, 0, 0, 1,0xFD, 0, 0, 0, 0};
 	for(uint8_t i=0;i<RESPONSE_NUMBER;i++)
 	{
 		if(responsePool[i].enable)
@@ -569,7 +569,7 @@ void MessengerClass::debugInfo(String name,String stateInfo,uint8_t sId)
 	}
 }
 
-//æ‰“å°ä¿¡æ¯
+//´òÓ¡ĞÅÏ¢
 void MessengerClass::print(String msg)
 {
 	if(DEBUG_MODE)
@@ -640,7 +640,7 @@ void MessengerClass::write(char* msg)
 	}
 }
 
-//æ‰“å°å®šæ—¶åˆ—è¡¨
+//´òÓ¡¶¨Ê±ÁĞ±í
 void MessengerClass::printTimingList(uint8_t* timeList, uint8_t len)
 {
 	#ifndef _ZESP8266_H_
