@@ -148,7 +148,7 @@ void ZESP8266_UDP::send(byte* sbuf, uint8_t len, bool cmdOnly)
 			if(!checkLocalCmd(buf))
 			{
 				char info[k+20];
-				sprintf(info,"Debug Info#\n%s\n",buf);
+				sprintf(info,"Miko-%02d info#\n%s\n",CLIENT_ID,buf);
 				this->write(info);
 			}
 		}
@@ -163,9 +163,14 @@ void ZESP8266_UDP::send(byte* sbuf, uint8_t len)
 {
 	if(!checkLocalCmd(sbuf))
 	{
+		if(debugClientIP != 0)
+		{
+			char info[20];
+			sprintf(info,"[miko-%02d sended ",CLIENT_ID);
+			this->write(info);
+		}
 		//send udp
   		sendUdp(sbuf, len);
-		this->write("\nSended# ");
 		this->printString(sbuf, len);
 	}
 }
@@ -202,7 +207,7 @@ uint8_t ZESP8266_UDP::receive(uint8_t* rbuf, uint8_t* rbuflen)
 	if (len>0 && debugClientIP != 0)
 	{
 		char info[32];
-		sprintf(info,"Got [%d.%d.%d.%d]#\n",remoteIP[0],remoteIP[1],remoteIP[2],remoteIP[3]);
+		sprintf(info,"[miko-%02d got %d.%d.%d.%d]#\n",CLIENT_ID,remoteIP[0],remoteIP[1],remoteIP[2],remoteIP[3]);
 		this->write(info);
 		this->printString(rbuf,len);
 	}
@@ -273,7 +278,7 @@ void ZESP8266_UDP::printString(uint8_t* msg, uint8_t len)
 			}
 			strBuf[k] = 0;
 			char info[size+11];
-			sprintf(info,"[%d B]:[%s]\n",len,strBuf);
+			sprintf(info,"[%d B = %s]\n",len,strBuf);
 			this->write(info);
 		}
 		else
@@ -413,7 +418,7 @@ void ZESP8266_UDP::sendUdp(uint8_t *buf, uint8_t len, IPAddress& ip, uint16_t po
 		if (debugClientIP!=0)
     	{
 	  		char info[32];
-	  		sprintf(info,"udp to [%d.%d.%d.%d:%d]\n",ip[0],ip[1],ip[2],ip[3],port);
+	  		sprintf(info,"to %d.%d.%d.%d:%d]#\n",ip[0],ip[1],ip[2],ip[3],port);
 	  		this->write(info);
 	  	}
   	}
@@ -423,7 +428,7 @@ void ZESP8266_UDP::showConnected()
 {
 	char info[32];
 	IPAddress ip = (uint32_t) WiFi.localIP();
-	sprintf(info,"local ip=[%d.%d.%d.%d]\n",ip[0],ip[1],ip[2],ip[3]);
+	sprintf(info,"miko-%02d ip=[%d.%d.%d.%d]\n",CLIENT_ID,ip[0],ip[1],ip[2],ip[3]);
 	this->write(info);
 }
 
@@ -533,7 +538,7 @@ uint8_t ZESP8266_UDP::handleMessage(uint8_t* buf, size_t len, uint8_t* rbuf, IPA
 			else if (cmd == 1)
 			{
 				char info[21];
-				sprintf(info,"Hi! ESP8266 No.%d\n",CLIENT_ID);
+				sprintf(info,"Hi! miko No.%d\n",CLIENT_ID);
 				this->write(info);
 			}
 		}
@@ -594,7 +599,7 @@ uint8_t ZESP8266_UDP::handleMessage(uint8_t* buf, size_t len, uint8_t* rbuf, IPA
 				{
 					char info[48];
 					IPAddress ip(pool_client_ip[i].ip);
-					sprintf(info,"Miko-%d, %d, [%d.%d.%d.%d:%d]\n",pool_client_ip[i].id,pool_client_ip[i].failCnt,ip[0],ip[1],ip[2],ip[3],pool_client_ip[i].port);
+					sprintf(info,"miko-%02d, %d, [%d.%d.%d.%d:%d]\n",pool_client_ip[i].id,pool_client_ip[i].failCnt,ip[0],ip[1],ip[2],ip[3],pool_client_ip[i].port);
 			  		this->write(info);
 				}
 				rlen = 1;
@@ -629,7 +634,7 @@ void ZESP8266_UDP::printTimingList(uint8_t* timeList, uint8_t len)
 		char info[72];
 		uint8_t k = 0;
 		char sep;
-		this->write("\ntiming list:\n");
+		this->write("timing list:\n");
 		for (uint8_t i = 0; i < len; i++)
 		{
 			uint8_t val = *(timeList+i);

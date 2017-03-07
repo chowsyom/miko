@@ -28,7 +28,7 @@
 	#define VW_MAX_MESSAGE_LEN 254
 #endif
 #define WDT_TIMEOUT WDTO_8S //WDTO_500MS WDTO_1S WDTO_2S WDTO_8S
-//#define RF_TIMEOUT 5000   //毫秒
+//#define RF_TIMEOUT 5000   //姣
 #define RX_CMD_TICKET_LEN 5
 #define RELAY_NUMBER 6
 #define MESSAGE_CACHE_NUMBER 5
@@ -55,8 +55,8 @@ class MessengerClass
 	private:
 		uint8_t CLIENT_ID = 0;
 		bool DEBUG_MODE = false;
-		const unsigned long TIMEOUT_1_HOUR = 3600000;//1小时
-		//const unsigned long time_to_reset = 86400000;//24小时
+		const unsigned long TIMEOUT_1_HOUR = 3600000;//1灏忔椂
+		//const unsigned long time_to_reset = 86400000;//24灏忔椂
 		//uint8_t receiveBuf[VW_MAX_MESSAGE_LEN];
 		const uint8_t CMD[10] = {0xFE, 0x7C, 0, 0, 1,0, 0, 0, 0, 0};
 		OptByCmd optByCmdFlag[RELAY_NUMBER];
