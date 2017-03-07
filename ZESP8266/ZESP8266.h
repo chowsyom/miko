@@ -4,14 +4,16 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
-#include <ArduinoOTA.h>
 #include <EEPROM.h>
 #include <ZUdpClock.h>
 
 
 //#define _DEBUG_MODE_	//仅插串口时打开
+#define _USING_OTA_	//ESP12
 
-
+#ifdef _USING_OTA_
+	#include <ArduinoOTA.h>
+#endif
 //#ifdef _SERVER_MODE_
 #define reserve 0
 #define MAX_WIFI_CLIENTS 5
@@ -25,21 +27,6 @@
 
 class ZESP8266
 {
-	public:
-		uint8_t CLIENT_ID = 0xFF;
-		//WiFiUDP udp;
-		virtual void begin(void);
-		void loop(void);
-		void send(byte* sbuf, uint8_t len);
-		void send(byte* sbuf, uint8_t len,bool cmdOnly);
-		uint8_t receive(uint8_t* buf, uint8_t* buflen);
-		void sendUdp(uint8_t *buf, uint8_t len);
-		void sendUdp(uint8_t *buf, uint8_t len, IPAddress& ip, uint16_t port);
-		void print(String msg);
-		void println(String msg);
-		void write(char* msg);
-		void printTimingList(uint8_t* timeList, uint8_t len);
-
 	private:
 
 		const char *AP[4][2] = {{"ZZY-2.4G","Auglx19780712"},{"ES_001","go2map123"},{"ZZY-2.4G-EXT","Auglx19780712"},{"ZZY-EXT","Auglx19780712"}};
@@ -53,6 +40,8 @@ class ZESP8266
 		const byte HEART_BEAT_CMD[9] = {0x23, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x23, 0};
 		WiFiClient wifiClients[MAX_WIFI_CLIENTS + reserve];
 		WiFiUDP udp;
+		//WiFiServer server;
+		//IPAddress udp_broadcast_addr;
 		uint16_t pool_port[CLIENT_POOL_SIZE];
 		uint8_t pool_client_ip[CLIENT_POOL_SIZE][6];
 		uint8_t debugClientIdx = 0xFF;
@@ -61,7 +50,9 @@ class ZESP8266
 		void initWifi(uint8_t id);
 		void printIP();
 		void printMAC();
-		void OTAinit(void);
+		#ifdef _USING_OTA_
+			void OTAinit(void);
+		#endif
 		void connectServer();
 		uint8_t handleMessage(uint8_t* buf,size_t len,uint8_t* rbuf, uint8_t clientIdx);
 		void showConnected(WiFiClient& wificlient);
@@ -70,6 +61,21 @@ class ZESP8266
 		void printString(uint8_t* str, uint8_t len);
 		uint8_t receiveTCP(uint8_t* rbuf, uint8_t* len, uint8_t clientIdx);
 		void updateCleintPool(IPAddress& ip, uint16_t port, uint8_t* buf);
+	public:
+		ZESP8266();
+		uint8_t CLIENT_ID = 0xFF;
+		//WiFiUDP udp;
+		virtual void begin(void);
+		void loop(void);
+		void send(byte* sbuf, uint8_t len);
+		void send(byte* sbuf, uint8_t len,bool cmdOnly);
+		uint8_t receive(uint8_t* buf, uint8_t* buflen);
+		void sendUdp(uint8_t *buf, uint8_t len);
+		void sendUdp(uint8_t *buf, uint8_t len, IPAddress& ip, uint16_t port);
+		void print(String msg);
+		void println(String msg);
+		void write(char* msg);
+		void printTimingList(uint8_t* timeList, uint8_t len);		
 };
 extern ZESP8266 ZWifi;
 #endif

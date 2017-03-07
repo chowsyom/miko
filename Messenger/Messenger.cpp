@@ -1,12 +1,9 @@
 #include "Messenger.h"
 
-#ifdef _SOFT_SERIAL_DEBUG_MODE_
-	SoftwareSerial softSerial(RXPIN, TXPIN);
-#endif
 
 void MessengerClass::begin(void)
 {
-	Serial.begin(115200);
+	//Serial.begin(115200);
 	#ifdef _SOFT_SERIAL_DEBUG_MODE_
 		softSerial.begin(9600);
 		softSerial.listen();
@@ -40,7 +37,7 @@ void MessengerClass::sayHi()
 		ZClock.getDateTime(date,timeStr);
 		this->print("Hi! This's Miko No.");
 		this->println(CLIENT_ID,DEC);
-		this->println(String(timeStr));
+		this->println(timeStr);
 	#endif
 }
 //void MessengerClass::loop(void)
@@ -55,6 +52,10 @@ void MessengerClass::loop(void)//(bool* hasOtherMsg, uint8_t* msg, uint8_t* msgS
 	#ifdef _ZESP8266_H_
 		ZWifi.loop();
 	#endif
+	if(millis() - debug_start_time > TIMEOUT_1_HOUR)
+	{
+		DEBUG_MODE = false;
+	}	
 	uint8_t len = VW_MAX_MESSAGE_LEN;
 	uint8_t receiveBuf[len];
 	//如果收到远程指令，处理指令
@@ -137,11 +138,12 @@ uint8_t MessengerClass::receiveMsg(uint8_t* buf, uint8_t* buflen)
 	#else
 		if (Serial.available())
 		{
-			delay(100);//防止信息被分段读取
+			delay(100);
 			size_t len = Serial.available();
 			len = len>*buflen?*buflen:len;
 			byte sbuf[len];
 			Serial.readBytes(sbuf, len);
+			Serial.flush();
 			memcpy(buf, sbuf, len);
 			*buflen = len;
 		}
@@ -153,7 +155,7 @@ uint8_t MessengerClass::receiveMsg(uint8_t* buf, uint8_t* buflen)
 		#ifndef _ZESP8266_H_
 		    if(*buf==0xFE)
 			{
-				this->print("\nGot ");
+				this->print("Got ");
 			}
 		    this->printString(buf, *buflen);
 		    delay(10);
@@ -181,11 +183,12 @@ void MessengerClass::printString(uint8_t* msg, uint8_t len)
 				break;
 			}
 		}
-		this->println("]");
+		this->print("]\n");
 	}
 	else
 	{
 		this->write((char*) msg);
+		this->print("\n");
 	}
 }
 #else
@@ -260,7 +263,11 @@ void MessengerClass::handleMessage(uint8_t* receiveBuf, uint8_t buflen)
 				break;
 			}
 		}
-		if(receiveBuf[3] == 0xDB) DEBUG_MODE = true;
+		if(receiveBuf[3] == 0xDB)
+		{
+			debug_start_time = millis();
+			DEBUG_MODE = true;
+		}
 		delayMicroseconds(1);
 		if(!isRepeat || receiveBuf[3] == 0xDB)
 		{
@@ -314,45 +321,6 @@ void MessengerClass::handleMessage(uint8_t* receiveBuf, uint8_t buflen)
 						infoReplyTimes = (*(addr + 1));
 					}
 				break;
-				//case 0xFD:
-
-					//FE 7C 34 33 01 FD CMD VAL ... 0
-
-					//uint8_t hbyte,lbyte;
-					/*if(*addr == 0xFC)
-					{
-					hbyte = (*(addr + 1)) == 0xFF ? 0 : (*(addr + 1));
-					lbyte = (*(addr + 2)) == 0xFF ? 0 : (*(addr + 2));
-					this->println(hbyte * 0x100 + lbyte, DEC);
-					delay(100);
-					}
-					else*/
-					//if(*addr == 0xFF)//&&receiveBuf[3]==msg_cache[2])//确认接收者是否匹配
-					//{
-					  	//判断回复收到指令长度是否正确 FE 7C 34 33 1E FD FF 8 0
-						// if (*(addr + 1) != sendedSize) {
-					 //  		#ifdef _ZESP8266_H_
-					 //  			char info[50];
-						// 		sprintf(info,"Sended=%d, responsed=%d, Error!resending...\n",sendedSize,*(addr + 1));
-						// 		this->write(info);
-						// 	#else
-						//   		this->print("Sended=");
-						//   		this->print(sendedSize,DEC);
-						//   		this->print(", responsed=");
-						//   		this->print(*(addr + 1),DEC);
-						// 		this->println(", Error!resending...");
-						// 	#endif
-						// 	delay(100);
-						// 	this->sendMsg();
-						// 	delay(1000);
-					 //  	}
-					 //  	else {
-						// 	replyEnable = false;
-						// 	replyRetryTimes = 0;
-						// 	this->println("Sended done.");
-					 //  	}
-					//}
-				//break;
 				case 0x01:
 				  //设置设备编号
 				  
@@ -369,7 +337,7 @@ void MessengerClass::handleMessage(uint8_t* receiveBuf, uint8_t buflen)
 							this->write(info);
 						#else
 							this->print("Updata ID to No.");
-							this->print(*addr,DEC);
+							this->println(*addr,DEC);
 						#endif
 						delay(100);
 					}
@@ -445,15 +413,21 @@ void MessengerClass::handleMessage(uint8_t* receiveBuf, uint8_t buflen)
 					  ZClock.setDateTime(date);//uint8_t date[7];
 					  if(receiveBuf[3] == 0xDB)
 					  {
-						  this->print("Updated ");
+							this->print("Updated ");
 					  }
 				  }
 				  if(receiveBuf[3] == 0xDB) 
 				  {
 				  	char timeStr[22];
 				  	ZClock.getDateTime(date,timeStr);
-					this->print("System Clock:");
-					this->println(String(timeStr));
+				  	#ifdef _ZESP8266_H_
+						char info[50];
+						sprintf(info,"System Clock:%s\n",timeStr);
+						this->write(info);
+					#else
+						this->print("System Clock:");
+						this->println(timeStr);
+					#endif
 				  }
 				  break;
 				//case 0x04:
@@ -550,82 +524,102 @@ void MessengerClass::response(uint8_t* buf, uint8_t len)
 	}
 	
 }
-void MessengerClass::debugInfo(String name,String stateInfo,uint8_t sId)
+void MessengerClass::debugInfo(const char* name, const char* stateInfo)
 {
- 	if(millis() - relay_start_time  > 500 || infoId == 0xDB)
+	if (infoId != 0)
  	{
- 		relay_start_time = millis();
-	 	if ((infoId == sId || infoId == 0xDB) && infoReplyTimes > 0)//{0xFE, 0x7C, 0, 0, 1,0xFD, 0xFC, 0xFF, 0, 0};
-	    {
-			infoReplyTimes--;
-			char info[32];
-			sprintf(info,"%d.%s=%s\n",sId,name.c_str(),stateInfo.c_str());
-			this->write(info);
-	    }
-		else
+		if(NULL == debugInfoName_1st) debugInfoName_1st = name;
+		else if(debugInfoName_1st==name)
 		{
-			infoId == 0;
+			infoId_cnt = 0;
+			if(infoId == 0xDB) infoReplyTimes = 0;
+		}
+		infoId_cnt++;
+		if(infoId == 0xDB || (infoId == infoId_cnt && (millis() - relay_start_time  > 500)))
+		{
+			relay_start_time = millis();
+	    	if(infoReplyTimes > 0)
+	    	{
+				infoReplyTimes--;
+				char info[32];
+				sprintf(info,"%d.%s=%s\n",infoId_cnt,name,stateInfo);//.c_str()
+				this->write(info);
+			}
+			else
+			{
+				infoId = 0;
+				infoId_cnt = 0;
+				debugInfoName_1st = NULL;
+			}
 		}
 	}
-}
 
+
+	//单个ID，每500毫秒返回一个，避免太快
+ // 	if ((infoId == infoId_cnt && (millis() - relay_start_time  > 500)) || infoId == 0xDB)//{0xFE, 0x7C, 0, 0, 1,0xFD, 0xFC, 0xFF, 0, 0};
+ // 	{
+ //    	relay_start_time = millis();
+ //    	if(loopEnd && infoId == 0xDB) infoReplyTimes = 0;
+ //    	if(infoReplyTimes > 0)
+ //    	{
+	// 		infoReplyTimes--;
+	// 		char info[32];
+	// 		sprintf(info,"%d.%s=%s\n",infoId_cnt,name,stateInfo);//.c_str()
+	// 		this->write(info);
+	// 	}
+	// 	else
+	// 	{
+	// 		infoId = 0;
+	// 	}
+	// }
+}
+void MessengerClass::print(const char* msg)
+{
+	if(DEBUG_MODE)
+	{
+		#ifdef _ZESP8266_H_
+			ZWifi.write(msg);
+		#else
+			Serial.print(msg);
+		#endif
+	}
+}
+void MessengerClass::println(const char* msg)
+{
+	if(DEBUG_MODE)
+	{
+		#ifdef _ZESP8266_H_
+			uint8_t len = strlen(msg);
+	    	char buf[len+3];
+	    	buf[len] = 0x0D;
+	    	buf[len+1] = 0x0A;
+	    	buf[len+2] = 0;
+	    	memcpy(buf,msg,len);
+			ZWifi.write(buf);
+		#else
+			Serial.println(msg);
+		#endif
+	}
+}
 //打印信息
-void MessengerClass::print(String msg)
-{
-	if(DEBUG_MODE)
+#ifndef _ZESP8266_H_
+	//非esp8266时使用
+	void MessengerClass::print(int msg,uint8_t type)
 	{
-	#ifdef _ZESP8266_H_
-		ZWifi.print(msg);
-	#else
-		Serial.print(msg);
-	#endif
-	#ifdef _SOFT_SERIAL_DEBUG_MODE_
-		softSerial.print(msg);
-	#endif
+		if(DEBUG_MODE)
+		{
+			Serial.print(msg,type);
+		}
 	}
-
-}
-void MessengerClass::println(String msg)
-{
-	if(DEBUG_MODE)
+	void MessengerClass::println(int msg,uint8_t type)
 	{
-	#ifdef _ZESP8266_H_
-		ZWifi.println(msg);
-	#else
-		Serial.println(msg);
-	#endif
-	#ifdef _SOFT_SERIAL_DEBUG_MODE_
-		softSerial.println(msg);
-	#endif
+		if(DEBUG_MODE)
+		{
+			Serial.println(msg,type);
+		}
 	}
-
-}
-void MessengerClass::print(int msg,uint8_t type)
-{
-	if(DEBUG_MODE)
-	{
-	#ifndef _ZESP8266_H_
-		Serial.print(msg,type);
-	#endif
-	#ifdef _SOFT_SERIAL_DEBUG_MODE_
-		softSerial.print(msg,type);
-	#endif
-	}
-
-}
-void MessengerClass::println(int msg,uint8_t type)
-{
-	if(DEBUG_MODE)
-	{
-	#ifndef _ZESP8266_H_
-		Serial.println(msg,type);
-	#endif
-	#ifdef _SOFT_SERIAL_DEBUG_MODE_
-		softSerial.println(msg,type);
-	#endif
-	}
-}
-void MessengerClass::write(char* msg)
+#endif
+void MessengerClass::write(const char* msg)
 {
 	if(DEBUG_MODE)
 	{
@@ -633,9 +627,6 @@ void MessengerClass::write(char* msg)
 		ZWifi.write(msg);
 	#else
 		Serial.print(msg);
-	#endif
-	#ifdef _SOFT_SERIAL_DEBUG_MODE_
-		softSerial.print(msg);
 	#endif
 	}
 }

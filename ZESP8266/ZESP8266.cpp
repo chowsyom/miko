@@ -1,9 +1,14 @@
 #include "ZESP8266.h"
 
 //ESP8266WiFiMulti wifiMulti;
-WiFiServer server(TCP_PORT);
-IPAddress udp_broadcast_addr(255, 255, 255, 255);
+static WiFiServer server(TCP_PORT);
+static IPAddress udp_broadcast_addr(255, 255, 255, 255);
 
+ZESP8266::ZESP8266()
+{
+ 	//server = WiFiServer((uint16_t) TCP_PORT);
+ 	//udp_broadcast_addr = IPAddress(255, 255, 255, 255);
+}
 bool ZESP8266::checkWifiClient(uint8_t idx)
 {
 	bool flag = false;
@@ -19,6 +24,10 @@ bool ZESP8266::checkWifiClient(uint8_t idx)
 void ZESP8266::begin(void)
 {
 	EEPROM.begin(100);
+	//init
+	//server = WiFiServer(TCP_PORT);
+	//udp_broadcast_addr = IPAddress(255, 255, 255, 255);
+
 	delay(1000);
 	size_t len = Serial.available();
 	if(len>0)
@@ -56,7 +65,9 @@ void ZESP8266::begin(void)
 		MDNS.addService("http", "tcp", 80);
 		MDNS.addService("http", "tcp", TCP_PORT);
 		ZClock.begin();
-		this->OTAinit();
+		#ifdef _USING_OTA_
+			this->OTAinit();
+		#endif
 		delay(500);
 	}
 	else
@@ -75,12 +86,14 @@ void ZESP8266::loop(void)
 {
 	if(OTA_enable) 
 	{
-		ArduinoOTA.handle();
-		if(debugClientIdx != 0xFF)
-		{
-			this->println("OTA stand by...");
-			delay(1000);
-		}
+		#ifdef _USING_OTA_
+			ArduinoOTA.handle();
+			if(debugClientIdx != 0xFF)
+			{
+				this->println("OTA stand by...");
+				delay(1000);
+			}
+		#endif
 	}
 	else
 	{
@@ -133,6 +146,7 @@ void ZESP8266::loop(void)
 		}
 	}
 }
+#ifdef _USING_OTA_
 void ZESP8266::OTAinit(void)
 {
 	// Port defaults to 8266
@@ -165,6 +179,7 @@ void ZESP8266::OTAinit(void)
 	});
 	ArduinoOTA.begin();
 }
+#endif
 void ZESP8266::send(byte* sbuf, uint8_t len, bool cmdOnly)
 {
 	
@@ -731,7 +746,7 @@ uint8_t ZESP8266::handleMessage(uint8_t* buf, size_t len, uint8_t* rbuf, uint8_t
 					*(rbuf+2) = CLIENT_ID;
 					*(rbuf+5) = 0xFC;
 					*(rbuf+6) = 0xDB;
-					*(rbuf+7) = 0x08;
+					*(rbuf+7) = 0x1E;
 					*(rbuf+8) = 0;
 					rlen = 9;
 				}

@@ -26,7 +26,7 @@ extern "C"
 		bool val;
 		//读取HC-RS501释热传感器状态
 		val = digitalRead(HCSR501_PIN);
-		Messenger.debugInfo("HCSR", val?"1":"0", sensorId);
+		//Messenger.debugInfo("HCSR", val?"1":"0");
 		return val;
 	}
 	bool hcrs501_continue_active(uint8_t id, bool isFired)
