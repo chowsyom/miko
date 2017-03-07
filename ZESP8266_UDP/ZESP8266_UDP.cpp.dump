@@ -538,7 +538,7 @@ uint8_t ZESP8266_UDP::handleMessage(uint8_t* buf, size_t len, uint8_t* rbuf, IPA
 			else if (cmd == 1)
 			{
 				char info[21];
-				sprintf(info,"Hi! miko No.%d\n",CLIENT_ID);
+				sprintf(info,"Hi! This's miko No.%d\n",CLIENT_ID);
 				this->write(info);
 			}
 		}

@@ -113,9 +113,9 @@ void MessengerClass::sendMsg(uint8_t* msg, uint8_t len)
 	#else
 		Serial.write((byte *) msg, len);
 		delay(10);
-		this->print("Miko-");
-		this->print(CLIENT_ID,DEC);
-		this->print(" sended#\n");
+		//this->print("Miko-");
+		//this->print(CLIENT_ID,DEC);
+		this->print("Sended ");
 		this->printString(msg, len);
 	#endif
 	delay(10);
@@ -157,9 +157,9 @@ uint8_t MessengerClass::receiveMsg(uint8_t* buf, uint8_t* buflen)
 		#ifndef _ZESP8266_H_
 		    if(*buf==0xFE)
 			{
-				this->print("Miko-");
-				this->print(CLIENT_ID,DEC);
-				this->print(" got#\n");
+				//this->print("Miko-");
+				//this->print(CLIENT_ID,DEC);
+				this->print("Got ");
 			}
 		    this->printString(buf, *buflen);
 		    delay(10);
